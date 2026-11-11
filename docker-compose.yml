@@ -1,0 +1,114 @@
+# ReliStack — three-service stack with a chaos lab.
+#
+# Every setting in this file is deliberate. The "why" for each one lives in
+# docs/01-architecture.md and docs/02-docker-concepts.md.
+#
+# Run it with:  docker compose up -d --build
+# Inspect it with: docker compose ps
+#
+# Note on syntax: this file uses the Compose Specification (no `version:` key,
+# which is obsolete and warns on recent Compose releases). It works with
+# `docker compose` (v2+ plugin) and with the standalone `docker-compose` binary.
+
+name: relistack
+
+services:
+  # ---------------------------------------------------------------- cache ---
+  # Redis stores the counter. It is the only stateful service, so it is the
+  # only one with a volume.
+  cache:
+    image: redis:7-alpine
+    container_name: relistack-cache
+    restart: unless-stopped
+    # `--appendonly yes` turns on the Redis AOF: every write is appended to a
+    # file, so the data survives an unclean shutdown (kill -9).
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      # Named volume: managed by Docker, not by the host's filesystem layout.
+      # It survives `docker compose down` and is only removed by `down -v`.
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    networks:
+      - relinet
+
+  # ------------------------------------------------------------------ api ---
+  # The Flask application server.
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: relistack-api:1.0.0
+    container_name: relistack-api
+    # on-failure:5 = "restart me if I die with a non-zero exit code, but give
+    # up after 5 attempts". Rationale: a crash is worth retrying, but an
+    # infinite crash loop is worse than a visible, stopped service.
+    restart: on-failure:5
+    environment:
+      REDIS_HOST: cache
+      REDIS_PORT: "6379"
+    expose:
+      - "8000"
+    depends_on:
+      cache:
+        # `service_healthy` (not `service_started`): wait until the dependency
+        # actually answers its healthcheck, not merely until it was created.
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          # A hard memory ceiling. When the API exceeds it the kernel's cgroup
+          # OOM killer terminates it: exit code 137, OOMKilled=true.
+          # This is exactly the failure mode experiment E4 demonstrates.
+          memory: 256M
+    networks:
+      - relinet
+
+  # ------------------------------------------------------------------ web ---
+  # The NGINX reverse proxy — the only service exposed to the host.
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: relistack-web:1.0.0
+    container_name: relistack-web
+    # unless-stopped = "always come back, including after a host reboot — but
+    # stay stopped if a human stopped me on purpose".
+    restart: unless-stopped
+    ports:
+      # host:container. 8080 on the host avoids needing root for port 80.
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - relinet
+
+networks:
+  relinet:
+    driver: bridge
+    name: relistack-relinet
+
+volumes:
+  redis-data:
+    name: relistack-redis-data

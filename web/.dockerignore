@@ -1,0 +1,6 @@
+# Keep the build context minimal: only nginx.conf, static/ and the entrypoint
+# script are needed to build this image.
+*.md
+.git/
+.gitignore
+.DS_Store

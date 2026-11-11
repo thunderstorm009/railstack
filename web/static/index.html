@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReliStack — Self-Healing Docker Stack</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --ok: #4ade80;
+    --fail: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header {
+    padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #111c34, var(--bg));
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { margin: 0 0 .4rem; font-size: 2.1rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .75rem; color: var(--accent); }
+  p.lede { color: var(--muted); margin: 0; max-width: 60ch; }
+  main { padding: 2rem 1.5rem 4rem; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+  .card h3 { margin: 0 0 .35rem; font-size: .95rem; }
+  .card p { margin: 0; color: var(--muted); font-size: .87rem; }
+  .badge {
+    display: inline-block;
+    padding: .1rem .5rem;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .badge.ok { background: rgba(74, 222, 128, .15); color: var(--ok); }
+  .badge.fail { background: rgba(248, 113, 113, .15); color: var(--fail); }
+  code {
+    background: #0b1220;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .1rem .35rem;
+    font-size: .85em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; }
+  pre {
+    background: #0b1220;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    font-size: .82rem;
+  }
+  footer { border-top: 1px solid var(--border); padding: 1.5rem; color: var(--muted); font-size: .82rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>ReliStack</h1>
+    <p class="lede">
+      A three-service Docker Compose stack &mdash; NGINX reverse proxy, Flask API,
+      Redis cache &mdash; built to be broken on purpose. Every component has a
+      healthcheck, a restart policy and a documented failure mode.
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+  <h2>Live status</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Proxy <span class="badge" id="b-proxy">checking</span></h3>
+      <p><code>GET /healthz</code> on the NGINX container itself.</p>
+    </div>
+    <div class="card">
+      <h3>API <span class="badge" id="b-api">checking</span></h3>
+      <p><code>GET /api/hello</code> through the proxy to the Flask container.</p>
+    </div>
+    <div class="card">
+      <h3>Cache <span class="badge" id="b-cache">checking</span></h3>
+      <p><code>GET /api/count</code> round-trips through Redis.</p>
+    </div>
+  </div>
+
+  <h2>What this stack demonstrates</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Health-gated startup</h3>
+      <p><code>depends_on: service_healthy</code> — a service starts only after its dependency actually answers.</p>
+    </div>
+    <div class="card">
+      <h3>Explicit restart policies</h3>
+      <p><code>unless-stopped</code> for the front door, <code>on-failure:5</code> for the API.</p>
+    </div>
+    <div class="card">
+      <h3>Graceful vs forced shutdown</h3>
+      <p><code>stop</code> sends SIGTERM, <code>kill</code> sends SIGKILL. The exit codes differ: 143 vs 137.</p>
+    </div>
+    <div class="card">
+      <h3>Persistent storage</h3>
+      <p>A named volume keeps the Redis counter alive across <code>down</code> — but not across <code>down -v</code>.</p>
+    </div>
+  </div>
+
+  <h2>Try it</h2>
+  <pre><code>curl -s http://localhost:8080/healthz
+curl -s http://localhost:8080/api/hello
+curl -s http://localhost:8080/api/count</code></pre>
+
+  <h2>Break it (on purpose)</h2>
+  <pre><code>./scripts/chaos.sh kill-api        # SIGKILL the API, watch the proxy 502
+./scripts/chaos.sh crash-api       # crash-loop until retries are exhausted
+./scripts/chaos.sh oom-api         # exceed the memory limit, watch exit 137
+./scripts/chaos.sh bad-config      # break nginx.conf, watch the fail-fast entrypoint
+./scripts/chaos.sh recover         # bring the stack back to green</code></pre>
+
+  <h2>Service matrix</h2>
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Image</th><th>Role</th><th>Restart policy</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>web</td><td>nginx:1.29-alpine</td><td>Reverse proxy &amp; static page</td><td><code>unless-stopped</code></td></tr>
+      <tr><td>api</td><td>python:3.12-slim</td><td>Flask application server</td><td><code>on-failure:5</code></td></tr>
+      <tr><td>cache</td><td>redis:7-alpine</td><td>Counter store</td><td><code>unless-stopped</code></td></tr>
+    </tbody>
+  </table>
+</main>
+
+<footer class="wrap">
+  ReliStack &mdash; built as a 5-hour Docker challenge. Full documentation in <code>README.md</code> and <code>docs/</code>.
+</footer>
+
+<script>
+  // Small client-side probe: the same three endpoints the smoke test uses.
+  function setBadge(id, ok, label) {
+    const el = document.getElementById(id);
+    el.textContent = label;
+    el.className = 'badge ' + (ok ? 'ok' : 'fail');
+  }
+  async function probe(id, url, check) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const body = await res.text();
+      setBadge(id, check ? check(body) : true, 'healthy');
+    } catch (err) {
+      setBadge(id, false, 'unreachable');
+    }
+  }
+  probe('b-proxy', '/healthz');
+  probe('b-api', '/api/hello', b => b.includes('reli-api'));
+  probe('b-cache', '/api/count', b => b.includes('count'));
+</script>
+</body>
+</html>

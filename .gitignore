@@ -1,0 +1,28 @@
+# ReliStack — Self-Healing Docker Stack with a Chaos Lab
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Environment & secrets
+.env
+*.pem
+*.key
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Docs artifacts that are not part of the repo
+docs/results/*.tmp
+
+# Editor / agent local state (not part of the project)
+.puku/

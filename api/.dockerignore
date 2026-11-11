@@ -1,0 +1,12 @@
+# Keep the build context small and prevent host-side junk from leaking into
+# the image. A large context slows every build; secrets should never be baked
+# into an image.
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+.git/
+.gitignore
+.pytest_cache/

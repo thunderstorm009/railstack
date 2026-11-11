@@ -1,0 +1,17 @@
+# services:
+#   cache:
+#     command: ["sh", "-c", "echo 'slow-start: waiting 8s before accepting connections'; sleep 8; exec redis-server --appendonly yes"]
+#
+# This override makes Redis take 8 seconds to start accepting connections.
+# It exists so experiment E6 can show the difference between
+# `condition: service_started` and `condition: service_healthy`.
+services:
+  cache:
+    command: ["sh", "-c", "echo '[slow-start] sleeping 8s before redis accepts connections'; sleep 8; exec redis-server --appendonly yes"]
+
+  api:
+    # The whole point of E6: start the API as soon as the cache CONTAINER
+    # exists, without waiting for Redis to actually answer.
+    depends_on:
+      cache:
+        condition: service_started

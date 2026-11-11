@@ -1,0 +1,43 @@
+====================================================================
+Experiment : E4-oom-kill
+Timestamp  : 2026-11-11T16:01:53Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e4-oom-kill.sh
+====================================================================
+
++ eval ./scripts/experiments/e4-oom-kill.sh
+++ ./scripts/experiments/e4-oom-kill.sh
+############################################################
+# A) PID 1 is the memory hog, 64 MB limit, --restart always
+############################################################
+state: status=restarting exit=137 oom=true restarts=7 mem_limit=67108864
+container log (last 3 lines):
+
+############################################################
+# B) the real compose api service (256M limit, on-failure:5)
+############################################################
+before: status=running exit=0 oom=false restarts=0 mem_limit=268435456
+after the child process allocated too much:
+  status=running exit=0 oom=true restarts=0 mem_limit=268435456
+  container still serving? 200
+
+>>> KEY OBSERVATION: the container is still running.
+>>> The OOM killer killed the child python process, NOT PID 1 (gunicorn).
+>>> A container only exits when PID 1 dies.
+
+############################################################
+# C) same 256M limit, but the hog IS PID 1 -> container exits 137
+############################################################
+state: status=exited exit=137 oom=true restarts=5 mem_limit=268435456
+exit code detail:
+exit=137  oom=true  error=
+
+### cleaning up the scratch containers
+done
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

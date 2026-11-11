@@ -1,0 +1,69 @@
+====================================================================
+Experiment : E2-restart-matrix
+Timestamp  : 2026-11-11T15:31:12Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e2-restart-matrix.sh
+====================================================================
+
++ eval ./scripts/experiments/e2-restart-matrix.sh
+++ ./scripts/experiments/e2-restart-matrix.sh
+restart policies under test: no | on-failure | always | unless-stopped
+
+==============================================================
+### policy: no
+==============================================================
+Unable to find image 'alpine:3.20' locally
+3.20: Pulling from library/alpine
+3f26bc2dec0b: Pulling fs layer
+3f26bc2dec0b: Download complete
+3f26bc2dec0b: Pull complete
+cee42a41056b: Download complete
+8b093306b817: Download complete
+Digest: sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
+Status: Downloaded newer image for alpine:3.20
+started:  running exit=0 restarts=0
+-- SIGKILL (docker kill)
+after kill: exited exit=137 restarts=0
+-- explicit stop (docker stop)
+after stop: exited exit=137 restarts=0
+
+==============================================================
+### policy: on-failure
+==============================================================
+started:  running exit=0 restarts=0
+-- SIGKILL (docker kill)
+after kill: exited exit=137 restarts=0
+-- explicit stop (docker stop)
+after stop: exited exit=137 restarts=0
+
+==============================================================
+### policy: always
+==============================================================
+started:  running exit=0 restarts=0
+-- SIGKILL (docker kill)
+after kill: exited exit=137 restarts=0
+-- explicit stop (docker stop)
+after stop: exited exit=137 restarts=0
+
+==============================================================
+### policy: unless-stopped
+==============================================================
+started:  running exit=0 restarts=0
+-- SIGKILL (docker kill)
+after kill: exited exit=137 restarts=0
+-- explicit stop (docker stop)
+after stop: exited exit=137 restarts=0
+
+=== summary ===
+POLICY           STATUS     EXIT     RESTARTS  
+(see per-case output above for no)
+(see per-case output above for on-failure)
+(see per-case output above for always)
+(see per-case output above for unless-stopped)
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

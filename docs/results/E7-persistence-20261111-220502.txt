@@ -1,0 +1,68 @@
+====================================================================
+Experiment : E7-persistence
+Timestamp  : 2026-11-11T16:05:02Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e7-persistence.sh
+====================================================================
+
++ eval ./scripts/experiments/e7-persistence.sh
+++ ./scripts/experiments/e7-persistence.sh
+### the volume we are testing
+relistack-redis-data
+
+### 1) set a known value
+  /api/count -> {"container":"4d65f85ed150","count":37}
+  redis key   -> 37
+
+### 2) docker compose down  (containers removed, volumes KEPT)
+ Container relistack-web Stopping 
+ Container relistack-web Stopped 
+ Container relistack-web Removing 
+ Container relistack-web Removed 
+ Container relistack-api Stopping 
+ Container relistack-api Stopped 
+ Container relistack-api Removing 
+ Container relistack-api Removed 
+ Container relistack-cache Stopping 
+ Container relistack-cache Stopped 
+ Container relistack-cache Removing 
+ Container relistack-cache Removed 
+ Network relistack-relinet Removing 
+ Network relistack-relinet Removed 
+  volume still present? relistack-redis-data
+
+### 3) docker compose up   (containers recreated, volume reattached)
+  /api/count -> {"container":"d3f1f22f655e","count":38}
+  redis key   -> 38
+
+### 4) docker compose down -v   (volumes REMOVED too)
+ Container relistack-web Stopping 
+ Container relistack-web Stopped 
+ Container relistack-web Removing 
+ Container relistack-web Removed 
+ Container relistack-api Stopping 
+ Container relistack-api Stopped 
+ Container relistack-api Removing 
+ Container relistack-api Removed 
+ Container relistack-cache Stopping 
+ Container relistack-cache Stopped 
+ Container relistack-cache Removing 
+ Container relistack-cache Removed 
+ Network relistack-relinet Removing 
+ Volume relistack-redis-data Removing 
+ Volume relistack-redis-data Removed 
+ Network relistack-relinet Removed 
+  volume still present? []
+
+### 5) docker compose up again (a brand new, empty volume)
+  /api/count -> {"container":"5b634d9b060d","count":1}
+  redis key   -> 1
+
+>>> The counter restarted from 1: the old volume was destroyed by -v.
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

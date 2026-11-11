@@ -1,0 +1,35 @@
+====================================================================
+Experiment : E4-oom-kill
+Timestamp  : 2026-11-11T16:00:57Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e4-oom-kill.sh
+====================================================================
+
++ eval ./scripts/experiments/e4-oom-kill.sh
+++ ./scripts/experiments/e4-oom-kill.sh
+############################################################
+# A) controlled container: 64 MB limit, --restart always
+############################################################
+after OOM:  status=restarting exit=1 oom=false restarts=7 mem=67108864
+container log:
+  File "<string>", line 2, in <module>
+ModuleNotFoundError: No module named 'bytearray'
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+ModuleNotFoundError: No module named 'bytearray'
+
+############################################################
+# B) the real compose api service: 256M limit, on-failure:5
+############################################################
+before: status=running exit=0 oom=false restarts=0 mem=268435456
+after OOM:  status=running exit=0 oom=false restarts=0 mem=268435456
+
+is the API serving again?
+proxy /api/hello -> HTTP 200
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

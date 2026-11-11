@@ -1,0 +1,10 @@
+# services:
+#   cache:
+#     command: ["sh", "-c", "sleep 8 && redis-server --appendonly yes"]
+#
+# Same slow-starting Redis as compose.slow-cache-started.yml, but the API
+# keeps the production setting: `condition: service_healthy`. Compose waits
+# until Redis actually answers `redis-cli ping` before starting the API.
+services:
+  cache:
+    command: ["sh", "-c", "echo '[slow-start] sleeping 8s before redis accepts connections'; sleep 8; exec redis-server --appendonly yes"]

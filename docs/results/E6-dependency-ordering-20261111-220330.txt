@@ -1,0 +1,69 @@
+====================================================================
+Experiment : E6-dependency-ordering
+Timestamp  : 2026-11-11T16:03:30Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e6-dependency-ordering.sh
+====================================================================
+
++ eval ./scripts/experiments/e6-dependency-ordering.sh
+++ ./scripts/experiments/e6-dependency-ordering.sh
+############################################################
+# A) condition: service_started   (Redis slow-starts by 8s)
+############################################################
+ Container relistack-api Healthy 
+ Container relistack-web Starting 
+ Container relistack-web Started 
+
+polling the API as soon as the proxy answers:
+t=01s    /api/count -> HTTP 503
+t=02s    /api/count -> HTTP 503
+t=03s    /api/count -> HTTP 503
+t=04s    /api/count -> HTTP 200
+t=05s    /api/count -> HTTP 200
+t=06s    /api/count -> HTTP 200
+t=07s    /api/count -> HTTP 200
+t=08s    /api/count -> HTTP 200
+t=09s    /api/count -> HTTP 200
+t=10s    /api/count -> HTTP 200
+t=11s    /api/count -> HTTP 200
+t=12s    /api/count -> HTTP 200
+t=13s    /api/count -> HTTP 200
+t=14s    /api/count -> HTTP 200
+
+############################################################
+# B) condition: service_healthy   (Redis slow-starts by 8s)
+############################################################
+ Container relistack-api Healthy 
+ Container relistack-web Starting 
+ Container relistack-web Started 
+
+polling the API as soon as the proxy answers:
+t=01s    /api/count -> HTTP 200
+t=02s    /api/count -> HTTP 200
+t=03s    /api/count -> HTTP 200
+t=04s    /api/count -> HTTP 200
+t=05s    /api/count -> HTTP 200
+t=06s    /api/count -> HTTP 200
+t=07s    /api/count -> HTTP 200
+t=08s    /api/count -> HTTP 200
+t=09s    /api/count -> HTTP 200
+t=10s    /api/count -> HTTP 200
+t=11s    /api/count -> HTTP 200
+t=12s    /api/count -> HTTP 200
+t=13s    /api/count -> HTTP 200
+t=14s    /api/count -> HTTP 200
+
+### restoring the production configuration
+ Container relistack-api Healthy 
+ Container relistack-web Starting 
+ Container relistack-web Started 
+api healthy
+cache healthy
+web healthy
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

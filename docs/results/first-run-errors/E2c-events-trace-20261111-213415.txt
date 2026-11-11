@@ -1,0 +1,25 @@
+====================================================================
+Experiment : E2c-events-trace
+Timestamp  : 2026-11-11T15:34:15Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e2c-events-trace.sh
+====================================================================
+
++ eval ./scripts/experiments/e2c-events-trace.sh
+++ ./scripts/experiments/e2c-events-trace.sh
+############################################################
+# A) process exits by itself (exit 1), policy=always
+############################################################
+unknown flag: --timeout
+
+Usage:  docker events [OPTIONS]
+
+Run 'docker events --help' for more information
+./scripts/experiments/e2c-events-trace.sh: line 28: $!: unbound variable
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

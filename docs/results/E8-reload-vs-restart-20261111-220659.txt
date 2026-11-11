@@ -1,0 +1,39 @@
+====================================================================
+Experiment : E8-reload-vs-restart
+Timestamp  : 2026-11-11T16:06:59Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e8-reload-vs-restart.sh
+====================================================================
+
++ eval ./scripts/experiments/e8-reload-vs-restart.sh
+++ ./scripts/experiments/e8-reload-vs-restart.sh
+############################################################
+# A) graceful reload: docker compose exec web nginx -s reload
+############################################################
+sending SIGHUP to the nginx master...
+2026/11/11 16:07:02 [notice] 55#55: signal process started
+requests: 751   failed: 0
+
+############################################################
+# B) hard restart: docker compose restart web
+############################################################
+restarting the container...
+ Container relistack-web Restarting 
+ Container relistack-web Started 
+requests: 838   failed: 16
+
+############################################################
+# summary
+############################################################
+reload   : 0 failed out of 751
+restart  : 16 failed out of 838
+
+>>> zero-downtime confirmed: the reload was invisible to clients,
+>>> while the hard restart dropped 16 requests.
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

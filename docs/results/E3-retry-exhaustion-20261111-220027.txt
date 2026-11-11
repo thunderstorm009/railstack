@@ -1,0 +1,51 @@
+====================================================================
+Experiment : E3-retry-exhaustion
+Timestamp  : 2026-11-11T16:00:27Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e3-retry-exhaustion.sh
+====================================================================
+
++ eval ./scripts/experiments/e3-retry-exhaustion.sh
+++ ./scripts/experiments/e3-retry-exhaustion.sh
+### starting a container that always exits 1, with --restart on-failure:5
+restarting exit=1 restarts=4
+
+### watching the restart counter climb (15s window)
+t=01s  restarting exit=1 restarts=4
+t=02s  restarting exit=1 restarts=5
+t=03s  restarting exit=1 restarts=5
+t=04s  exited exit=1 restarts=5
+t=05s  exited exit=1 restarts=5
+t=06s  exited exit=1 restarts=5
+t=07s  exited exit=1 restarts=5
+t=08s  exited exit=1 restarts=5
+t=09s  exited exit=1 restarts=5
+t=10s  exited exit=1 restarts=5
+t=11s  exited exit=1 restarts=5
+t=12s  exited exit=1 restarts=5
+t=13s  exited exit=1 restarts=5
+t=14s  exited exit=1 restarts=5
+t=15s  exited exit=1 restarts=5
+
+### final state
+exited exit=1 restarts=5
+### exit code (1 = the process failed on purpose)
+1
+
+### container logs (the crash message repeats once per attempt)
+simulated crash
+simulated crash
+simulated crash
+simulated crash
+simulated crash
+simulated crash
+
+### restarting it manually resets the retry budget
+restarting exit=1 restarts=5
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

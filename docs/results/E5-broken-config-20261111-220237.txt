@@ -1,0 +1,39 @@
+====================================================================
+Experiment : E5-broken-config
+Timestamp  : 2026-11-11T16:02:37Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e5-broken-config.sh
+====================================================================
+
++ eval ./scripts/experiments/e5-broken-config.sh
+++ ./scripts/experiments/e5-broken-config.sh
+### baseline
+status=running exit=0 restarts=0
+proxy /healthz -> HTTP 200
+
+### breaking nginx.conf inside the container
+--- tail of the broken config ---
+}
+
+this_is_not_a_valid_directive;
+
+### restarting the proxy so it re-reads the file
+ Container relistack-web Restarting 
+ Container relistack-web Started 
+
+### container logs (the [emerg] line is the real error)
+[relistack] validating nginx configuration...
+2026/11/11 16:02:38 [emerg] 7#7: unknown directive "this_is_not_a_valid_directive" in /etc/nginx/nginx.conf:82
+nginx: [emerg] unknown directive "this_is_not_a_valid_directive" in /etc/nginx/nginx.conf:82
+[relistack] validating nginx configuration...
+
+### container state
+status=restarting exit=1 restarts=5
+proxy /healthz -> HTTP 000
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

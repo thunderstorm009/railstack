@@ -1,0 +1,42 @@
+====================================================================
+Experiment : E1-stop-vs-kill
+Timestamp  : 2026-11-11T15:27:36Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e1-stop-vs-kill.sh
+====================================================================
+
++ eval ./scripts/experiments/e1-stop-vs-kill.sh
+++ ./scripts/experiments/e1-stop-vs-kill.sh
+### baseline
+running exit=0 oom=false restarts=0 error=
+proxy /api/hello -> HTTP 200
+
+### A) docker compose stop api   (SIGTERM, graceful)
+ Container relistack-api Stopping 
+ Container relistack-api Stopped 
+exited exit=0 oom=false restarts=0 error=
+proxy /api/hello -> HTTP 504
+
+### B) docker compose start api  (bring it back)
+ Container relistack-cache Waiting 
+ Container relistack-cache Healthy 
+ Container relistack-api Starting 
+ Container relistack-api Started 
+running exit=0 oom=false restarts=0 error=
+proxy /api/hello -> HTTP 502
+
+### C) docker kill relistack-api   (SIGKILL, forced)
+relistack-api
+exited exit=137 oom=false restarts=0 error=
+proxy /api/hello -> HTTP 502
+
+### D) waiting 10s to see whether the restart policy revives it
+exited exit=137 oom=false restarts=0 error=
+proxy /api/hello -> HTTP 502
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

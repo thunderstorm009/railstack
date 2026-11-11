@@ -1,0 +1,51 @@
+====================================================================
+Experiment : E2c-events-trace
+Timestamp  : 2026-11-11T15:34:38Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e2c-events-trace.sh
+====================================================================
+
++ eval ./scripts/experiments/e2c-events-trace.sh
+++ ./scripts/experiments/e2c-events-trace.sh
+############################################################
+# A) process exits by itself (exit 1), policy=always
+############################################################
+--- docker events ---
+./scripts/experiments/e2c-events-trace.sh: line 30: timeout: command not found
+final: status=restarting exit=1 restarts=8
+
+############################################################
+# B) docker kill from outside, policy=always
+############################################################
+e2c-b
+--- docker events ---
+./scripts/experiments/e2c-events-trace.sh: line 30: timeout: command not found
+final: status=exited exit=137 restarts=0
+
+############################################################
+# C) docker stop from outside, policy=always
+############################################################
+e2c-c
+--- docker events ---
+./scripts/experiments/e2c-events-trace.sh: line 30: timeout: command not found
+final: status=exited exit=137 restarts=0
+
+############################################################
+# D) PID-1 signal protection: kill -9 1 from inside
+############################################################
+PID 1 inside the container:
+lrwxrwxrwx    1 root     root             0 Nov 11 15:35 /proc/1/exe -> /bin/busybox
+sleep 3600 
+sending SIGTERM to PID 1 from inside (should be ignored):
+  kill command returned 0 (no error)
+after SIGTERM from inside: status=running exit=0 restarts=0
+sending SIGKILL to PID 1 from inside (also ignored by the kernel):
+  kill command returned 0 (no error)
+after SIGKILL from inside: status=running exit=0 restarts=0
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================

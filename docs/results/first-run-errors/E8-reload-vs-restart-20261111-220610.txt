@@ -1,0 +1,38 @@
+====================================================================
+Experiment : E8-reload-vs-restart
+Timestamp  : 2026-11-11T16:06:10Z (UTC)
+Host       : Darwin 25.6.0 arm64
+Docker     : Docker version 29.6.2, build dfc4efb
+Compose    : Docker Compose version v5.3.1
+Command    : ./scripts/experiments/e8-reload-vs-restart.sh
+====================================================================
+
++ eval ./scripts/experiments/e8-reload-vs-restart.sh
+++ ./scripts/experiments/e8-reload-vs-restart.sh
+############################################################
+# A) graceful reload: docker compose exec web nginx -s reload
+############################################################
+sending SIGHUP to the nginx master...
+2026/11/11 16:06:14 [notice] 49#49: signal process started
+requests: 681   failed: 0
+
+############################################################
+# B) hard restart: docker compose restart web
+############################################################
+restarting the container...
+ Container relistack-web Restarting 
+ Container relistack-web Started 
+requests: 679   failed: 11
+
+############################################################
+# summary
+############################################################
+reload   : 11 failed out of 679
+restart  : 11 failed out of 679
+
+>>> 11 request(s) failed during the operation.
+
+====================================================================
+Exit status of the captured command: (see trace above)
+Captured by scripts/capture.sh
+====================================================================
